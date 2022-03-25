@@ -22,6 +22,9 @@ func TestListNetworkLists(t *testing.T) {
 		t.Fatalf("Cannot load config file: %v", err)
 	}
 
+	geo := "GEO"
+	ip := "IP"
+
 	tests := []struct {
 		name    string
 		args    args
@@ -38,6 +41,30 @@ func TestListNetworkLists(t *testing.T) {
 				search:          nil,
 			},
 			want:    20, /* Adjust the value if required */
+			wantErr: false,
+		},
+		{
+			name: "IP Only",
+			args: args{
+				config:          config,
+				includeElements: true,
+				extended:        true,
+				listType:        &ip,
+				search:          nil,
+			},
+			want:    16, /* Adjust the value if required */
+			wantErr: false,
+		},
+		{
+			name: "Geo Only",
+			args: args{
+				config:          config,
+				includeElements: true,
+				extended:        false,
+				listType:        &geo,
+				search:          nil,
+			},
+			want:    4, /* Adjust the value if required */
 			wantErr: false,
 		},
 	}
