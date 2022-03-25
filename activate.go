@@ -23,7 +23,7 @@ type ActivateRequest struct {
 	SiebelTicketId string `json:"siebelTicketId,omitempty"`
 }
 
-// GetActivationStatus Returns the Activation status in production or staging
+// GetActivationStatus Returns the Activation status in production or staging.
 func (nls *NetworkListEndpoint) GetActivationStatus(env string) (*string, error) {
 	var (
 		ref    string
@@ -92,9 +92,9 @@ func (nls *NetworkListEndpoint) Activate(env, comment string, recipients []strin
 	)
 
 	if env == Staging {
-		ref = nls.refs.stagingStatus
+		ref = nls.refs.activateStaging
 	} else if env == Production {
-		ref = nls.refs.productionStatus
+		ref = nls.refs.activateProduction
 	} else {
 		return UnsupportedEnvironmentError
 	}
