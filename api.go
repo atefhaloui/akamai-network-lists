@@ -1,7 +1,6 @@
 package v2
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -126,16 +125,15 @@ func New(cfg *edgegrid.Config, networkName string) (*NetworkListEndpoint, error)
 // Add append an IP address, subnet or country to the network list.
 func (nls *NetworkListEndpoint) Add(item string) error {
 	var (
-		query bytes.Buffer
 		err   error
 		req   *http.Request
 		resp  *http.Response
 		data  []byte
 	)
 
-	query.WriteString(fmt.Sprintf("%s?element=%s", nls.refs.addRemove, url.QueryEscape(item)))
+	query := fmt.Sprintf("%s?element=%s", nls.refs.addRemove, url.QueryEscape(item))
 
-	req, err = client.NewRequest(nls.config, "PUT", query.String(), nil)
+	req, err = client.NewRequest(nls.config, "PUT", query, nil)
 	if err != nil {
 		log.Errorf("%s", err)
 		return CreateRequestFailed
@@ -169,16 +167,15 @@ func (nls *NetworkListEndpoint) Add(item string) error {
 // Delete remove an IP address, subnet or country from the network list.
 func (nls *NetworkListEndpoint) Delete(item string) error {
 	var (
-		query bytes.Buffer
 		err   error
 		req   *http.Request
 		resp  *http.Response
 		data  []byte
 	)
 
-	query.WriteString(fmt.Sprintf("%s?element=%s", nls.refs.addRemove, url.QueryEscape(item)))
+	query := fmt.Sprintf("%s?element=%s", nls.refs.addRemove, url.QueryEscape(item))
 
-	req, err = client.NewRequest(nls.config, "DELETE", query.String(), nil)
+	req, err = client.NewRequest(nls.config, "DELETE", query, nil)
 	if err != nil {
 		log.Errorf("%s", err)
 		return CreateRequestFailed
