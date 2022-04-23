@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/akamai/AkamaiOPEN-edgegrid-golang/client-v1"
-	log "github.com/sirupsen/logrus"
 )
 
 // AppendRequest definition
@@ -27,37 +26,28 @@ func (nls *NetworkListEndpoint) Append(list []string) error {
 	appReq := AppendRequest{list}
 	body, err := json.Marshal(appReq)
 	if err != nil {
-		log.Errorf("%s", err)
 		return JsonError
 	}
 
-	req, err = client.NewRequest(nls.config, "POST", nls.refs.append, bytes.NewReader(body))
+	req, err = client.NewRequest(nls.config, nls.refs.append.Method, nls.refs.append.Href, bytes.NewReader(body))
 	if err != nil {
-		log.Errorf("%s", err)
 		return CreateRequestFailed
 	}
 
 	resp, err = client.Do(nls.config, req)
 	if err != nil {
-		log.Errorf("%s", err)
 		return ExecRequestFailed
 	}
 	defer resp.Body.Close()
 
 	data, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Errorf("%s", err)
 		return ReadBodyFailed
 	}
 
-	log.Tracef("Received body: %s", string(data))
-
 	if client.IsError(resp) {
-		log.Errorf("%s", string(data))
-		return fmt.Errorf("%v", data)
+		return fmt.Errorf("%v", string(data))
 	}
-
-	log.Infof("'%v' had been added", list)
 
 	return nil
 }

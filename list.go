@@ -9,7 +9,6 @@ import (
 
 	"github.com/akamai/AkamaiOPEN-edgegrid-golang/client-v1"
 	"github.com/akamai/AkamaiOPEN-edgegrid-golang/edgegrid"
-	log "github.com/sirupsen/logrus"
 )
 
 // NetworkList Encapsulates information about each network list.
@@ -107,32 +106,25 @@ func ListNetworkLists(config edgegrid.Config, includeElements bool, search *stri
 
 	req, err = client.NewRequest(config, "GET", query, nil)
 	if err != nil {
-		log.Errorf("%s", err)
 		return nil, CreateRequestFailed
 	}
 
 	resp, err = client.Do(config, req)
 	if err != nil {
-		log.Errorf("%s", err)
 		return nil, ExecRequestFailed
 	}
 	defer resp.Body.Close()
 
 	data, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Errorf("%s", err)
 		return nil, ReadBodyFailed
 	}
 
-	log.Tracef("Received body: %s", string(data))
-
 	if client.IsError(resp) {
-		log.Errorf("%s", string(data))
-		return nil, fmt.Errorf("%v", data)
+		return nil, fmt.Errorf("%s", string(data))
 	}
 
 	if err := json.Unmarshal(data, &wrapper); err != nil {
-		log.Errorf("%s", err)
 		return nil, JsonError
 	}
 

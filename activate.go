@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/akamai/AkamaiOPEN-edgegrid-golang/client-v1"
-	log "github.com/sirupsen/logrus"
 )
 
 // ActivateRequest Requests a new activation.
@@ -26,7 +25,7 @@ type ActivateRequest struct {
 // GetActivationStatus Returns the Activation status in production or staging.
 func (nls *NetworkListEndpoint) GetActivationStatus(env string) (*string, error) {
 	var (
-		ref    string
+		ref    Link
 		err    error
 		req    *http.Request
 		resp   *http.Response
@@ -42,50 +41,41 @@ func (nls *NetworkListEndpoint) GetActivationStatus(env string) (*string, error)
 		return nil, UnsupportedEnvironmentError
 	}
 
-	req, err = client.NewRequest(nls.config, "GET", ref, nil)
+	req, err = client.NewRequest(nls.config, ref.Method, ref.Href, nil)
 	if err != nil {
-		log.Errorf("%s", err)
 		return nil, CreateRequestFailed
 	}
 
 	resp, err = client.Do(nls.config, req)
 	if err != nil {
-		log.Errorf("%s", err)
 		return nil, ExecRequestFailed
 	}
 	defer resp.Body.Close()
 
 	data, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Errorf("%s", err)
 		return nil, ReadBodyFailed
 	}
 
-	log.Tracef("Received body: %s", string(data))
-
 	if client.IsError(resp) {
-		log.Errorf("%s", string(data))
-		return nil, fmt.Errorf("%v", data)
+		return nil, fmt.Errorf("%s", string(data))
 	}
 
 	if err = json.Unmarshal(data, &status); err != nil {
-		log.Debugf("%s", err)
 		return nil, JsonError
 	}
 
 	if env == Staging {
-		log.Debugf("Staging activation status: %s", status.ActivationStatus)
 		return &status.ActivationStatus, nil
 	}
 
-	log.Debugf("Production activation status: %s", status.ActivationStatus)
 	return &status.ActivationStatus, nil
 }
 
 // Activate activates the Staging or Production environment
 func (nls *NetworkListEndpoint) Activate(env, comment string, recipients []string) error {
 	var (
-		ref  string
+		ref  Link
 		req  *http.Request
 		resp *http.Response
 		data []byte
@@ -102,42 +92,27 @@ func (nls *NetworkListEndpoint) Activate(env, comment string, recipients []strin
 	acReq := ActivateRequest{Comments: comment, NotificationRecipients: recipients}
 	body, err := json.Marshal(&acReq)
 	if err != nil {
-		log.Errorf("%s", err)
 		return JsonError
 	}
 
-	log.Tracef("Activation Body: %s", string(body))
-
-	req, err = client.NewRequest(nls.config, "POST", ref, bytes.NewReader(body))
+	req, err = client.NewRequest(nls.config, ref.Method, ref.Href, bytes.NewReader(body))
 	if err != nil {
-		log.Errorf("%s", err)
 		return CreateRequestFailed
 	}
 
 	resp, err = client.Do(nls.config, req)
 	if err != nil {
-		log.Errorf("%s", err)
 		return ExecRequestFailed
 	}
 	defer resp.Body.Close()
 
 	data, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Errorf("%s", err)
 		return ReadBodyFailed
 	}
 
-	log.Tracef("Activation response: %s", string(data))
-
 	if client.IsError(resp) {
-		log.Errorf("%s", string(data))
-		return fmt.Errorf("%v", data)
-	}
-
-	if env == Staging {
-		log.Debugf("STAGING has been activated")
-	} else {
-		log.Debugf("PRODUCTION has been activated")
+		return fmt.Errorf("%s", string(data))
 	}
 
 	return nil
